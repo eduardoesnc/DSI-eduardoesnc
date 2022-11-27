@@ -12,14 +12,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Startup Name Generator',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Startup Name Generator'),
-        ),
-        body: const Center(
-          child: RandomWords(),
+      theme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
         ),
       ),
+      home: const RandomWords(),
     );
   }
 }
@@ -33,11 +32,73 @@ class RandomWords extends StatefulWidget {
 class _RandomWordsState extends State<RandomWords> {
 
   final _suggestions = <WordPair>[];
+  final _saved = <WordPair>{};
   final _biggerFont = const TextStyle(fontSize: 18);
+  var actualMode = 1;
+   void _pushSaved() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) {
+          final tiles = _saved.map(
+            (pair) {
+              return ListTile(
+                title: Text(
+                  pair.asPascalCase,
+                  style: _biggerFont,
+                ),
+              );
+            },
+          );
+          final divided = tiles.isNotEmpty
+              ? ListTile.divideTiles(
+                  context: context,
+                  tiles: tiles,
+                ).toList()
+              : <Widget>[];
 
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Saved Suggestions'),
+            ),
+            body: ListView(children: divided),
+          );
+        },
+      ),
+    );
+  }
+  viewMode(actualMode){
+    const list = 1;
+    const card = 2;
+    
+    if (actualMode == list){
+      actualMode = card;
+    } else if (actualMode == card){
+      actualMode = list;
+    }
+    
+   return actualMode;
+
+  }
+  
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return Scaffold( 
+      appBar: AppBar(  
+        title: const Text('Startup Name Generator'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.dashboard),
+            onPressed: _pushSaved,
+            tooltip: 'Saved Suggestions',
+          ),
+          IconButton(
+            icon: const Icon(Icons.list),
+            onPressed: _pushSaved,
+            tooltip: 'Saved Suggestions',
+          ),
+        ],
+      ),             
+    body: ListView.builder(
       padding: const EdgeInsets.all(16.0),
       itemBuilder: (context, i) {
         if (i.isOdd) return const Divider();
@@ -46,17 +107,33 @@ class _RandomWordsState extends State<RandomWords> {
         if (index >= _suggestions.length) {
           _suggestions.addAll(generateWordPairs().take(10));
         }
-        return _buildRow(_suggestions[index]);
+        final alreadySaved = _saved.contains(_suggestions[index]);
+
+        return _buildRow(_suggestions[index], alreadySaved);
       },
+    ), //ListView
     );
   }
-  Widget _buildRow(WordPair pair){
+  Widget _buildRow(WordPair pair, alreadySaved){
     return ListTile(
       title: Text(
         pair.asPascalCase,
         style: _biggerFont,
       ),
+      trailing: Icon(
+        alreadySaved ? Icons.favorite : Icons.favorite_border,
+        color: alreadySaved ? Colors.red : null,
+        semanticLabel: alreadySaved ? 'Remove from saved' : 'Save',
+      ),
+      onTap: () {
+        setState(() {
+        if (alreadySaved) {
+          _saved.remove(pair);
+        } else {
+          _saved.add(pair);
+        }
+        });
+      }
     );
   }
 }
-
