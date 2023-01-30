@@ -97,7 +97,9 @@ class _RandomWordsState extends State<RandomWords> {
           _suggestions.addAll(generateWordPairs().take(10));
         }
         final alreadySaved = _saved.contains(_suggestions[index]);
-        return _buildRow(_suggestions[index], alreadySaved);
+        return Card(
+          child: _buildRow(_suggestions[index], alreadySaved),
+        );
       },
     );
     }
