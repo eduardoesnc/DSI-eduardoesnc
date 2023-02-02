@@ -1,8 +1,23 @@
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
+import 'package:first_app/editar.page.dart';
+import 'package:first_app/ParPalavra.dart';
+import 'package:first_app/ParPalavraRepository.dart';
 
 void main() {
   runApp(const MyApp());
+}
+
+class Argumentos {
+  final int id;
+  final ParPalavraRepository repositorio;
+  final ParPalavra palavra;
+
+  Argumentos({
+    required this.id,
+    required this.repositorio,
+    required this.palavra,
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -12,13 +27,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Startup Name Generator',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
         ),
       ),
-      home: const RandomWords(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const RandomWords(),
+        EditarPage.routeName: (context) => const EditarPage(),
+      },
     );
   }
 }
@@ -31,8 +51,8 @@ class RandomWords extends StatefulWidget {
 
 class _RandomWordsState extends State<RandomWords> {
 
-  final _suggestions = <WordPair>[];
-  final _saved = <WordPair>{};
+  final ParPalavraRepository _suggestions = ParPalavraRepository();
+  final _saved = <ParPalavra>{};
   final _biggerFont = const TextStyle(fontSize: 18);
   void _pushSaved() {
     Navigator.of(context).push(
@@ -73,16 +93,15 @@ class _RandomWordsState extends State<RandomWords> {
       //Modo de visualização em lista
       return ListView.builder(
         padding: const EdgeInsets.all(16.0),
+        itemCount: 40,
         itemBuilder: (context, i) {
           if (i.isOdd) return const Divider();
 
           final index = i ~/ 2;
-          if (index >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(10));
-          }
-          final alreadySaved = _saved.contains(_suggestions[index]);
 
-          return _buildRow(_suggestions[index], alreadySaved);
+          final alreadySaved = _saved.contains(_suggestions.index(index));
+
+          return _buildRow(_suggestions.index(index), alreadySaved, index);
         },
       );
     } else if(actualMode == 2){
@@ -90,15 +109,13 @@ class _RandomWordsState extends State<RandomWords> {
       return GridView.builder(
         padding: const EdgeInsets.all(16.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,),
-        itemCount: _suggestions.length,
+        itemCount: 20,
         itemBuilder: (context, index) {
           //final index = i ~/ 2; -> Manter essa linha faz com que os cards se dupliquem
-          if (index >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(10));
-          }
-          final alreadySaved = _saved.contains(_suggestions[index]);
+
+          final alreadySaved = _saved.contains(_suggestions.index(index));
           return Card(
-            child: _buildCard(_suggestions[index], alreadySaved),
+            child: _buildCard(_suggestions.index(index), alreadySaved, index),
           );
         },
       );
@@ -135,80 +152,102 @@ class _RandomWordsState extends State<RandomWords> {
     );
   }
 
-  Widget _buildRow(WordPair pair, alreadySaved){
+  Widget _buildRow(ParPalavra pair, alreadySaved, index){
     return ListTile(
         title: Text(
           pair.asPascalCase,
           style: _biggerFont,
         ),
-          leading: IconButton(
-              icon: Icon(
-                alreadySaved ? Icons.favorite : Icons.favorite_border,
-                color: alreadySaved ? Colors.red : null,
-                semanticLabel: alreadySaved ? 'Remove from saved' : 'Save',
+          trailing: Wrap(
+            children: [
+              IconButton(
+                  icon: Icon(
+                    alreadySaved ? Icons.favorite : Icons.favorite_border,
+                    color: alreadySaved ? Colors.red : null,
+                    semanticLabel: alreadySaved ? 'Remove from saved' : 'Save',
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      if (alreadySaved) {
+                        _saved.remove(pair);
+                      } else {
+                        _saved.add(pair);
+                      }
+                    });
+                  }
               ),
+
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _saved.remove(pair);
+                    _suggestions.removeAt(index);
+                  });
+                },
+                icon: const Icon(Icons.delete_forever),
+              ),
+            ],
+          ),
+      onTap: () {
+        Navigator.pushNamed(context, '/editar',
+          arguments: Argumentos(id: index, repositorio: _suggestions, palavra: pair),
+        ).then((_) => setState((() {})));
+      },
+    );
+  }
+
+  Widget _buildCard(ParPalavra pair, alreadySaved, index){
+    return Container(
+      alignment: Alignment.center,
+      child: SizedBox.expand(
+        child: TextButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/editar',
+            arguments: Argumentos(id: index, repositorio: _suggestions, palavra: pair),
+          ).then((_) => setState((() {})));
+            },
+          child: Column(
+
+            children: <Widget>[const SizedBox(height: 5,),
+            Text(
+              pair.asPascalCase,
+              style: const TextStyle(
+                fontSize: 18,
+                color: Colors.black,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            IconButton(
+                icon: Icon(
+                  alreadySaved ? Icons.favorite : Icons.favorite_border,
+                  color: alreadySaved ? Colors.red : Colors.black,
+                  semanticLabel: alreadySaved ? 'Remove from saved' : 'Save',
+                ),
+                onPressed: () {
+                  setState(() {
+                    if (alreadySaved) {
+                      _saved.remove(pair);
+                    } else {
+                      _saved.add(pair);
+                    }
+                  });
+                }
+            ),
+            IconButton(
               onPressed: () {
                 setState(() {
                   if (alreadySaved) {
                     _saved.remove(pair);
-                  } else {
-                    _saved.add(pair);
                   }
+                  _suggestions.removeAt(index);
                 });
-              }
+              },
+              icon: const Icon(Icons.delete_forever, color: Colors.black,),
+        ),
+        ],
           ),
-          trailing: IconButton(
-            onPressed: () {
-              setState(() {
-                if (alreadySaved) {
-                  _saved.remove(pair);
-                }
-                _suggestions.remove(pair);
-              });
-            },
-            icon: const Icon(Icons.delete_forever),
-          ),
-    );
-  }
-
-  Widget _buildCard(WordPair pair, alreadySaved){
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget> [
-        const SizedBox(height: 5,),
-        Text(
-          pair.asPascalCase,
-          style: _biggerFont,
         ),
-        IconButton(
-            icon: Icon(
-              alreadySaved ? Icons.favorite : Icons.favorite_border,
-              color: alreadySaved ? Colors.red : null,
-              semanticLabel: alreadySaved ? 'Remove from saved' : 'Save',
-            ),
-            onPressed: () {
-              setState(() {
-                if (alreadySaved) {
-                  _saved.remove(pair);
-                } else {
-                  _saved.add(pair);
-                }
-              });
-            }
-        ),
-        IconButton(
-          onPressed: () {
-            setState(() {
-              if (alreadySaved) {
-                _saved.remove(pair);
-              }
-              _suggestions.remove(pair);
-            });
-          },
-          icon: const Icon(Icons.delete_forever),
-        ),
-      ],
+      ),
     );
   }
 }
-
