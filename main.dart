@@ -1,4 +1,3 @@
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:first_app/editar.page.dart';
 import 'package:first_app/ParPalavra.dart';
@@ -93,7 +92,7 @@ class _RandomWordsState extends State<RandomWords> {
       //Modo de visualização em lista
       return ListView.builder(
         padding: const EdgeInsets.all(16.0),
-        itemCount: 40,
+        itemCount: _suggestions.length * 2,
         itemBuilder: (context, i) {
           if (i.isOdd) return const Divider();
 
@@ -109,7 +108,7 @@ class _RandomWordsState extends State<RandomWords> {
       return GridView.builder(
         padding: const EdgeInsets.all(16.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,),
-        itemCount: 20,
+        itemCount: _suggestions.length,
         itemBuilder: (context, index) {
           //final index = i ~/ 2; -> Manter essa linha faz com que os cards se dupliquem
 
@@ -126,7 +125,7 @@ class _RandomWordsState extends State<RandomWords> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Startup Name Generator'),
+        title: const Text('Startup Name Generator', style: TextStyle(fontSize: 18,),),
         actions: [
           IconButton(
             icon: const Icon(Icons.dashboard),
@@ -141,6 +140,18 @@ class _RandomWordsState extends State<RandomWords> {
             },
             tooltip: 'Change view mode',
           ),
+
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              ParPalavra pair = ParPalavra(palavra: '');
+              Navigator.pushNamed(context, '/editar',
+                arguments: Argumentos(id: -1, repositorio: _suggestions, palavra: pair),
+              ).then((_) => setState((() {})));
+            },
+            tooltip: 'Add new Pair',
+          ),
+
           IconButton(
             icon: const Icon(Icons.list),
             onPressed: _pushSaved,
@@ -251,3 +262,4 @@ class _RandomWordsState extends State<RandomWords> {
     );
   }
 }
+

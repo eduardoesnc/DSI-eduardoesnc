@@ -1,4 +1,3 @@
-import 'package:english_words/english_words.dart';
 import 'package:first_app/ParPalavra.dart';
 import 'package:first_app/main.dart';
 import 'package:flutter/material.dart';
@@ -27,27 +26,27 @@ class _EditarPageState extends State<EditarPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit word'),
+        title: (novaPalavra.asPascalCase != '') ? const Text('Edit word'): const Text('Add word'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () { Navigator.pop(context); },
         ),
       ),
       body: Container(
-        padding: EdgeInsets.only(top: 80, left: 40, right: 40,),
+        padding: const EdgeInsets.only(top: 80, left: 40, right: 40,),
         child: Column(
           children: [
             Text(
-             'A palavra era ' + novaPalavra.asPascalCase,
-              style: TextStyle(
+              (novaPalavra.asPascalCase != '') ?'A palavra era ' + novaPalavra.asPascalCase : 'Digite a nova palavra',
+              style: const TextStyle(
                 fontSize: 18,
                 color: Colors.black,
               ),
             ),
-            SizedBox(height: 20,),
+            const SizedBox(height: 20,),
             Container(
               height: 54,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.all(
                   Radius.circular(8),
@@ -57,7 +56,7 @@ class _EditarPageState extends State<EditarPage> {
                 controller: palavraController,
                 //autofocus: true,
                 keyboardType: TextInputType.text,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "Digite a nova palavra",
                   border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(8),),),
                   labelStyle: TextStyle(
@@ -66,7 +65,7 @@ class _EditarPageState extends State<EditarPage> {
                     fontSize: 18,
                   ),
                 ),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   color: Colors.black,
                 ),
@@ -74,45 +73,57 @@ class _EditarPageState extends State<EditarPage> {
             ),
 
 
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
 
-            Container(
-              height: 50,
-              width: 200,
-              alignment: Alignment.centerLeft,
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(5),
-                ),
-              ),
-              child: SizedBox.expand(
-                child: TextButton(
-                  onPressed: () {
-                      final palavra = palavraController.text;
-
-                      repositorio.editarPar(argumentos.id, palavra);
-
-                      Navigator.pop(context);
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        "Enviar",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.normal,
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
-                    ],
+            Wrap(
+              spacing: 20,
+              children: [
+                Container(
+                  height: 50,
+                  width: 100,
+                  alignment: Alignment.centerLeft,
+                  decoration: const BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(5),
+                    ),
                   ),
-                ),
-              ),
+                  child: SizedBox.expand(
+                    child: TextButton(
+                          onPressed: () {
+                            final palavra = palavraController.text;
+                            if (novaPalavra.asPascalCase == '') {
+
+                              repositorio.adicionarPar(palavra);
+
+                            } else{
+
+                              repositorio.editarPar(argumentos.id, palavra);
+
+                            }
+                            Navigator.pop(context);
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              Text(
+                                (novaPalavra.asPascalCase != '') ? 'Atualizar': 'Adicionar',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                                textAlign: TextAlign.left,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ),
+                  ),
+
+              ],
             ),
           ],
         ),

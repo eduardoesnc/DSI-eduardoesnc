@@ -10,6 +10,10 @@ class ParPalavra{
     return _palavra!;
   }
 
+  set palavra(String newPar){
+    _palavra = newPar;
+  }
+
   editar(String newPar) {
     _palavra = newPar;
   }

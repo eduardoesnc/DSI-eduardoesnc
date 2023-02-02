@@ -33,4 +33,8 @@ class ParPalavraRepository{
     _lista[i].editar(newPar);
   }
 
+  adicionarPar(String newPar){
+    _lista.add(ParPalavra(palavra: newPar));
+  }
+
 }
